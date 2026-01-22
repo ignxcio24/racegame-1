@@ -16,6 +16,10 @@ end div_freq;
 architecture Behavioral of div_freq is
   signal limit   : integer := 100000000-1; -- por defecto 1Hz
   signal counter : integer := 0;
+  
+  -- Constantes para simulación
+  --constant SIMULATION      : boolean := true;  -- poner false para síntesis real
+  --constant SIM_LIMIT_VALUE : integer := 3;     -- límite reducido solo en simulación
 begin
 
   process(clk)
@@ -59,7 +63,14 @@ begin
         else
           limit <= 100000000-1; -- default
         end if;
-
+        
+        
+         -- Sobrescribir limit solo en simulación
+        --if SIMULATION then
+          --limit <= SIM_LIMIT_VALUE;
+        --end if;
+        
+        
         -- Contador
         if counter >= limit then
           counter <= 0;

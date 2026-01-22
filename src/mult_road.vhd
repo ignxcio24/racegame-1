@@ -51,6 +51,9 @@ entity mult_road is
 end mult_road;
 architecture Behavioral of mult_road is
     constant C_MUX_FREQ_DIV : natural := 100000; -- Aprox 1ms por display
+    --- Simulacion
+    --constant C_MUX_FREQ_DIV : natural := 10; --SOLO simulacion
+    ---
     signal s_mux_counter    : natural range 0 to C_MUX_FREQ_DIV - 1 := 0;
     signal s_display_select : unsigned(2 downto 0) := "000"; 
     signal s_current_pattern : STD_LOGIC_VECTOR(6 downto 0);

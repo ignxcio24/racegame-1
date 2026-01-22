@@ -23,11 +23,10 @@ Port (
     clk : in STD_LOGIC;
     rst : in STD_LOGIC;
     CE : in STD_LOGIC;
-    --modo_f: in STD_LOGIC;
-    --modo_m: in STD_LOGIC;
-    --modo_d: in STD_LOGIC;
-    modo: in integer;
-    mover: in std_logic;
+    modo_f: in STD_LOGIC;
+    modo_m: in STD_LOGIC;
+    modo_d: in STD_LOGIC;
+    --mover: in std_logic;
     
     -- SALIDA de 56 BITS (8 displays * 7 segmentos)
     road: out std_logic_vector(55 downto 0); 
@@ -41,7 +40,10 @@ architecture Behavioral of carretera is
     constant C_SEGMENT : natural := segment;         -- 7
     
     -- 100MHz / 25,000,000 = 4Hz (Parpadea 4 veces por segundo)
-    constant C_BLINK_LIMIT : natural := 25000000; 
+    constant C_BLINK_LIMIT : natural := 25000000; --Para la ejecucion normal
+    ----
+    --constant C_BLINK_LIMIT : natural := 5; --Solo para simulacion
+    ----
     signal s_blink_counter : natural range 0 to C_BLINK_LIMIT := 0;
     subtype patron_seg is std_logic_vector(C_SEGMENT-1 downto 0);
     type road_dis is array (C_ROAD_LENGTH-1 downto 0) of patron_seg;
@@ -55,7 +57,7 @@ architecture Behavioral of carretera is
     signal comienzo: std_logic := '0';
     
 begin
-    --s_road_array <= (others => (others => '0'));
+    
     process(clk)
      begin
       if rising_edge(clk) then
@@ -97,7 +99,7 @@ begin
     elsif rising_edge(clk) then
         
         -- LÓGICA DE PARPADEO INDEPENDIENTE (Siempre activa si modo_m = '1')
-        if modo = 2 then
+        if modo_m = '1' and modo_f = '0' and modo_d = '0' then
             if s_blink_counter = C_BLINK_LIMIT - 1 then
                 s_blink_counter <= 0;
                 s_toggle <= not s_toggle; -- Cambia el estado del parpadeo
@@ -111,12 +113,12 @@ begin
 
         -- LÓGICA DE MOVIMIENTO (Solo ocurre cuando CE = '1')
         if comienzo = '1' then
-         if mover = '1' then --Actualización por divisor
+         --if mover = '1' then
             s_feedback <= s_lfsr(1) xor s_lfsr(0);
             s_lfsr <= s_feedback & s_lfsr(1);
             
             -- MODO NORMAL/PARPADEO
-            if modo = 1 or modo = 2 then
+            if modo_f = '1' or modo_m = '1' then
                 for i in 1 to C_ROAD_LENGTH-2 loop
                     s_road_array(i) <= s_road_array(i + 1);
                 end loop;
@@ -124,15 +126,15 @@ begin
                 --s_road_array(0) <= "00000000";
             
             -- MODO ACORTADO
-            elsif modo = 3 then 
-                s_road_array(C_ROAD_LENGTH-3) <= s_road_array(C_ROAD_LENGTH-2); 
-                s_road_array(C_ROAD_LENGTH-2) <= s_road_array(C_ROAD_LENGTH-1); 
-                s_road_array(C_ROAD_LENGTH-1) <= s_patron; 
-                for j in C_ROAD_LENGTH-4 to 0 loop 
+            elsif modo_d = '1' then 
+                s_road_array(1) <= s_road_array(2); 
+                s_road_array(2) <= s_road_array(3); 
+                s_road_array(3) <= s_patron; 
+                for j in 4 to C_ROAD_LENGTH-1 loop 
                     s_road_array(j) <= (others=>'0');
                 end loop;
             end if;
-           end if;
+           --end if;
         end if;
     end if;
 end process;

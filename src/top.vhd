@@ -14,7 +14,17 @@ entity top is
     hitazo      : in std_logic; -- se queda para pruebas (no se usa aquí)
 
     inf_displays: out STD_LOGIC_VECTOR (6 downto 0);
-    sel_displays: out STD_LOGIC_VECTOR (7 downto 0)
+    sel_displays: out STD_LOGIC_VECTOR (7 downto 0);
+    
+    led_r : out STD_LOGIC;
+    led_g : out STD_LOGIC;
+    led_b : out STD_LOGIC;
+    
+    led_r_final_p : out STD_LOGIC;
+    led_g_final_p : out STD_LOGIC;
+    led_b_final_p : out STD_LOGIC;
+    
+    led_final_g : out std_logic_vector(15 downto 0)
   );
 end top;
 
@@ -33,6 +43,7 @@ architecture Behavioral of top is
       up      : in  STD_LOGIC;
       down    : in  STD_LOGIC;
       clk     : in  STD_LOGIC;
+      rst     : in std_logic; 
       empezar : in  std_logic;
       code    : out std_logic_vector(6 downto 0);
       display : out std_logic
@@ -119,11 +130,41 @@ architecture Behavioral of top is
       looser           : out std_logic
     );
   end component;
+  
+  component RGB is
+    Port ( modo_f : in STD_LOGIC;
+           modo_m : in STD_LOGIC;
+           modo_d : in STD_LOGIC;
+           led_r : out STD_LOGIC;
+           led_g : out STD_LOGIC;
+           led_b : out STD_LOGIC
+          );
+  end component;  
+  
+  component final_ganar is
+    Port ( gana : in STD_LOGIC;
+           clk: in std_logic;
+           ce: in std_logic;
+           led_encender_ganar : out std_logic_vector(15 downto 0));
+  end component;
+  
+  component final_perder is
+    Port ( pierde : in STD_LOGIC;
+           clk: in std_logic;
+           ce: in std_logic;
+           led_r : out STD_LOGIC;
+           led_g : out STD_LOGIC;
+           led_b : out STD_LOGIC);
+  end component;
 
   -- Señales de botones
   signal s_up_sync, s_dn_sync, s_in_sync : std_logic;
   signal up_pulse, dn_pulse, init_pulse  : std_logic;
-
+  
+  signal agrup_ent_as: std_logic_vector(2 downto 0);
+  signal agrup_sal_si: std_logic_vector(2 downto 0);
+  signal agrup_sal_edge: std_logic_vector(2 downto 0);
+  
   -- Modo
   signal modo_f, modo_m, modo_d : std_logic;
 
@@ -192,15 +233,45 @@ architecture Behavioral of top is
   end function;
 
 begin
-
+  
+  --For generate sincronizadores
+  agrup_ent_as <= arriba & abajo & b_inicio;
+   
+  sincronizadores: for i in 0 to 2 generate
+   Ui: SYNCHRNZR port map(
+    CLK => CLK,
+    ASYNC_IN => agrup_ent_as(i),
+    SYNC_OUT => agrup_sal_si(i)
+    );
+  end generate;
+  
+  -- Desagrupación
+  s_up_sync <= agrup_sal_si(2);
+  s_dn_sync <= agrup_sal_si(1);
+  s_in_sync <= agrup_sal_si(0);
+  
+  
+  -- For generate de los edge detector
+  edge_detectors: for i in 0 to 2 generate
+    Edgei: EDGEDTCTR port map(
+    CLK => CLK,
+    SYNC_IN => agrup_sal_si(i),
+    EDGE => agrup_sal_edge(i)
+    );
+  end generate;
+  --Desagrupacion
+  up_pulse <= agrup_sal_edge(2);
+  dn_pulse <= agrup_sal_edge(1);
+  init_pulse <= agrup_sal_edge(0);
+  
   -- Sync + edge botones
-  U1: SYNCHRNZR port map(CLK=>CLK, ASYNC_IN=>arriba,   SYNC_OUT=>s_up_sync);
-  U2: SYNCHRNZR port map(CLK=>CLK, ASYNC_IN=>abajo,    SYNC_OUT=>s_dn_sync);
-  U3: SYNCHRNZR port map(CLK=>CLK, ASYNC_IN=>b_inicio, SYNC_OUT=>s_in_sync);
+  --U1: SYNCHRNZR port map(CLK=>CLK, ASYNC_IN=>arriba,   SYNC_OUT=>s_up_sync);
+  --U2: SYNCHRNZR port map(CLK=>CLK, ASYNC_IN=>abajo,    SYNC_OUT=>s_dn_sync);
+  --U3: SYNCHRNZR port map(CLK=>CLK, ASYNC_IN=>b_inicio, SYNC_OUT=>s_in_sync);
 
-  E1: EDGEDTCTR port map(CLK=>CLK, SYNC_IN=>s_up_sync, EDGE=>up_pulse);
-  E2: EDGEDTCTR port map(CLK=>CLK, SYNC_IN=>s_dn_sync, EDGE=>dn_pulse);
-  E3: EDGEDTCTR port map(CLK=>CLK, SYNC_IN=>s_in_sync, EDGE=>init_pulse);
+  --E1: EDGEDTCTR port map(CLK=>CLK, SYNC_IN=>s_up_sync, EDGE=>up_pulse);
+  --E2: EDGEDTCTR port map(CLK=>CLK, SYNC_IN=>s_dn_sync, EDGE=>dn_pulse);
+  --E3: EDGEDTCTR port map(CLK=>CLK, SYNC_IN=>s_in_sync, EDGE=>init_pulse);
 
   -- Decoder modo
   D0: DECODER_MODE port map(
@@ -218,6 +289,9 @@ begin
       tick_1s <= '0';
     elsif rising_edge(CLK) then
       if cnt_1s = to_unsigned(100000000-1, cnt_1s'length) then
+      --- Solo en simulacion
+      --if cnt_1s = to_unsigned(1000-1, cnt_1s'length) then
+      ---
         cnt_1s <= (others=>'0');
         tick_1s <= '1';
       else
@@ -284,6 +358,7 @@ begin
     up      => up_pulse,
     down    => dn_pulse,
     clk     => CLK,
+    rst     => reset_n,
     empezar => en_coche,
     code    => car_code,
     display => car_disp
@@ -349,6 +424,30 @@ begin
     SEGMENTS_OUT  => inf_displays,
     ANODES_OUT    => an_mux
   );
+  
+  led_modo:RGB port map(
+   modo_f => modo_f, 
+   modo_m => modo_m,
+   modo_d => modo_d,
+   led_r => led_r,
+   led_g => led_g,
+   led_b => led_b
+   );  
+   
+   leds_ganar: final_ganar 
+    Port map( gana => winner_s,
+          clk => CLK,
+          ce => move_tick,
+          led_encender_ganar => led_final_g);
+  
+  
+  leds_perder: final_perder
+   Port map( pierde => looser_s,
+          clk => CLK,
+          ce => move_tick,
+          led_r => led_r_final_p,
+          led_g => led_g_final_p,
+          led_b => led_b_final_p);
 
   -- Parpadeo SOLO en modo medio y SOLO jugando (sin borrar WIN/LOSE)
   sel_displays <= (others => '1')
@@ -356,4 +455,3 @@ begin
                   else an_mux;
 
 end Behavioral;
-

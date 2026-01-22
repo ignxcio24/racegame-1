@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use work.variables.all;
+--use work.variables.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -33,14 +33,13 @@ use work.variables.all;
 --use UNISIM.VComponents.all;
 
 entity coche is
-    Port ( up : in STD_LOGIC;
-           down : in STD_LOGIC;
-           clk : in STD_LOGIC; 
-           empezar: in std_logic;
-           choque: in std_logic;
-           code : out std_logic_vector(6 downto 0);
-           display : out std_logic;
-           luz: out std_logic
+    Port ( up      : in STD_LOGIC;
+           down    : in STD_LOGIC;
+           clk     : in STD_LOGIC;
+           rst     : in std_logic; 
+           empezar : in std_logic;
+           code    : out std_logic_vector(6 downto 0);
+           display : out std_logic
            );
 end coche;
 
@@ -50,25 +49,25 @@ begin
  process(clk)
  begin
   if rising_edge(clk) then
-  if choque = '0' then
-   if empezar = '1' then
-    if up = '1' then
-     if pos < 2 then
-      pos <= pos + 1;
+   if rst = '0' then
+    pos <= 1;
+   else
+    if empezar = '1' then
+     if up = '1' then
+      if pos < 2 then
+       pos <= pos + 1;
+      end if;
+     elsif down = '1' then
+      if pos > 0 then
+       pos <= pos - 1;
+      end if;
      end if;
-    elsif down = '1' then
-     if pos > 0 then
-      pos <= pos - 1;
+     end if;
     end if;
    end if;
-   end if;
-  else
-   luz <= '1';
-  end if;
-  end if;
   end process;
   
- process(pos)
+ process(pos, empezar)
   begin
   if empezar = '1' then
    case pos is

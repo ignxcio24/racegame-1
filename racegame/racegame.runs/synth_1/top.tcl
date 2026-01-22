@@ -4,7 +4,7 @@
 
 set TIME_start [clock seconds] 
 namespace eval ::optrace {
-  variable script "C:/fpga_trabajo/racegame/racegame/racegame.runs/synth_1/top.tcl"
+  variable script "C:/racegame/racegame/racegame/racegame.runs/synth_1/top.tcl"
   variable category "vivado_synth"
 }
 
@@ -56,41 +56,44 @@ if {$::dispatch::connected} {
 }
 
 OPTRACE "synth_1" START { ROLLUP_AUTO }
-set_param chipscope.maxJobs 1
+set_param chipscope.maxJobs 3
 OPTRACE "Creating in-memory project" START { }
 create_project -in_memory -part xc7a100tcsg324-1
 
 set_param project.singleFileAddWarning.threshold 0
 set_param project.compositeFile.enableAutoGeneration 0
 set_param synth.vivado.isSynthRun true
-set_property webtalk.parent_dir C:/fpga_trabajo/racegame/racegame/racegame.cache/wt [current_project]
-set_property parent.project_path C:/fpga_trabajo/racegame/racegame/racegame.xpr [current_project]
+set_property webtalk.parent_dir C:/racegame/racegame/racegame/racegame.cache/wt [current_project]
+set_property parent.project_path C:/racegame/racegame/racegame/racegame.xpr [current_project]
 set_property default_lib xil_defaultlib [current_project]
 set_property target_language Verilog [current_project]
-set_property board_part_repo_paths {C:/Users/Usuario/AppData/Roaming/Xilinx/Vivado/2024.1/xhub/board_store/xilinx_board_store} [current_project]
+set_property board_part_repo_paths {C:/Users/igcab/AppData/Roaming/Xilinx/Vivado/2024.1/xhub/board_store/xilinx_board_store} [current_project]
 set_property board_part digilentinc.com:nexys-a7-100t:part0:1.2 [current_project]
-set_property ip_output_repo c:/fpga_trabajo/racegame/racegame/racegame.cache/ip [current_project]
+set_property ip_output_repo c:/racegame/racegame/racegame/racegame.cache/ip [current_project]
 set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
 read_vhdl -library xil_defaultlib {
-  C:/fpga_trabajo/racegame/src/coche.vhd
-  C:/fpga_trabajo/racegame/src/DECODER_MODE.vhd
-  C:/fpga_trabajo/racegame/src/carretera.vhd
-  C:/fpga_trabajo/racegame/src/EDGEDTCTR.vhd
-  C:/fpga_trabajo/racegame/src/comp_choque.vhd
-  C:/fpga_trabajo/racegame/src/div_freq_comp_choque.vhd
-  C:/fpga_trabajo/racegame/src/FSM.vhd
-  C:/fpga_trabajo/racegame/src/top.vhd
-  C:/fpga_trabajo/racegame/src/comparador.vhd
-  C:/fpga_trabajo/racegame/src/div_freq.vhd
-  C:/fpga_trabajo/racegame/src/cont_flancos.vhd
-  C:/fpga_trabajo/racegame/src/mux_comparador.vhd
-  C:/fpga_trabajo/racegame/src/variables.vhd
-  C:/fpga_trabajo/racegame/src/div_reloj_cop_choque.vhd
-  C:/fpga_trabajo/racegame/src/mux_comp_choque.vhd
-  C:/fpga_trabajo/racegame/src/SYNCHRNZR.vhd
-  C:/fpga_trabajo/racegame/src/mult_road.vhd
+  C:/racegame/racegame/src/coche.vhd
+  C:/racegame/racegame/src/DECODER_MODE.vhd
+  C:/racegame/racegame/src/carretera.vhd
+  C:/racegame/racegame/src/EDGEDTCTR.vhd
+  C:/racegame/racegame/src/comp_choque.vhd
+  C:/racegame/racegame/src/div_freq_comp_choque.vhd
+  C:/racegame/racegame/src/FSM.vhd
+  C:/racegame/racegame/src/top.vhd
+  C:/racegame/racegame/src/comparador.vhd
+  C:/racegame/racegame/src/div_freq.vhd
+  C:/racegame/racegame/src/cont_flancos.vhd
+  C:/racegame/racegame/src/mux_comparador.vhd
+  C:/racegame/racegame/src/variables.vhd
+  C:/racegame/racegame/src/div_reloj_cop_choque.vhd
+  C:/racegame/racegame/src/mux_comp_choque.vhd
+  C:/racegame/racegame/src/SYNCHRNZR.vhd
+  C:/racegame/racegame/src/mult_road.vhd
+  C:/racegame/racegame/racegame/racegame.srcs/sources_1/imports/new/RGB.vhd
+  C:/racegame/racegame/racegame/racegame.srcs/sources_1/imports/new/final_ganar.vhd
+  C:/racegame/racegame/racegame/racegame.srcs/sources_1/imports/new/final_perder.vhd
 }
 OPTRACE "Adding files" END { }
 # Mark all dcp files as not used in implementation to prevent them from being
@@ -101,15 +104,13 @@ OPTRACE "Adding files" END { }
 foreach dcp [get_files -quiet -all -filter file_type=="Design\ Checkpoint"] {
   set_property used_in_implementation false $dcp
 }
-read_xdc C:/fpga_trabajo/racegame/src/Nexys-4-DDR-Master.xdc
-set_property used_in_implementation false [get_files C:/fpga_trabajo/racegame/src/Nexys-4-DDR-Master.xdc]
+read_xdc C:/racegame/racegame/src/Nexys-4-DDR-Master.xdc
+set_property used_in_implementation false [get_files C:/racegame/racegame/src/Nexys-4-DDR-Master.xdc]
 
-read_xdc C:/fpga_trabajo/racegame/src/Nexys-A7-100T-Master.xdc
-set_property used_in_implementation false [get_files C:/fpga_trabajo/racegame/src/Nexys-A7-100T-Master.xdc]
+read_xdc C:/racegame/racegame/src/Nexys-A7-100T-Master.xdc
+set_property used_in_implementation false [get_files C:/racegame/racegame/src/Nexys-A7-100T-Master.xdc]
 
 set_param ips.enableIPCacheLiteLoad 1
-
-read_checkpoint -auto_incremental -incremental C:/fpga_trabajo/racegame/trabajo_sed/trabajo_sed.srcs/utils_1/imports/synth_1/top.dcp
 close [open __synthesis_is_running__ w]
 
 OPTRACE "synth_design" START { }
